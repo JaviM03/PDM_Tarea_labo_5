@@ -11,6 +11,7 @@ import com.aldana.talle2app.utils.NetworkUtilities
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.activity_main.*
 import org.json.JSONObject
+import java.io.IOException
 
 class MainActivity : AppCompatActivity() {
 
@@ -38,32 +39,20 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-    inner class CoinsFetch : AsyncTask<Unit, Unit, List<Coin>>() {
+    private inner class CoinsFetch : AsyncTask<String, Void, String>() {
 
-        override fun doInBackground(vararg params: Unit?): List<Coin> {
-            val url = NetworkUtilities.buildURL()
-            val resultString = NetworkUtilities.getHTTPResult(url)
+        override fun doInBackground(vararg query: String): String {
 
-            val resultJSON = JSONObject(resultString)
+            val ID = query[0]
+            val monedaAPI = NetworkUtilities.NetworkUtils().buildUrl("coin")
 
-            return if (resultJSON.getBoolean("success")) {
-                CoinSerializer.parseCoins(
-                        resultJSON.getJSONArray("docs").toString()
-                )
-            } else {
-                listOf<Coin>()
+            return try {
+                NetworkUtilities.NetworkUtils().getResponseFromHttpUrl(monedaAPI)
+            } catch (e: IOException) {
+                ""
             }
-        }
 
-        override fun onPostExecute(result: List<Coin>) {
-            if (result.isNotEmpty()) {
-                viewAdapter.setData(result)
-            } else {
-                Snackbar.make(rv_moneda,
-                        "No se pudo obtener datos",
-                        Snackbar.LENGTH_SHORT).show()
-            }
         }
-
     }
 }
+
